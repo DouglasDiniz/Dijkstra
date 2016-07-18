@@ -1,0 +1,23 @@
+body{
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+
+#mapa{
+    background-image: url("../img/mapa.jpg");
+    opacity: 0.9;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+#icone-vertice{
+    width: 25px;
+    height: 25px;
+    border-radius: 25px;
+}
+
+#icone-aresta{
+    width: 25px;
+    height: 70px;
+}

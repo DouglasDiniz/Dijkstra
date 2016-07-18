@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br" ng-app="Dijkstra">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+        <!-- Bootstrap -->
+        <link href="libraries/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="libraries/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+
+        <!-- Angular.js -->
+        <script src="libraries/angular-1.5.7/angular.min.js"></script>
+
+        <title>Algoritmo de Dijkstra</title>
+
+        <link rel="icon" href="assets/img/favicon.png" >
+        <link href="assets/css/style.css" rel="stylesheet">
+        <script src="assets/js/app.js"></script>
+    </head>
+    <body ng-controller="mapaCtrl as mapa">
+
+        <div class="container-fluid">
+
+            <div class="alert alert-warning alert-dismissible" role="alert" ng-show="mapa.aviso">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="mapa.desativarAviso()"><span aria-hidden="true">&times;</span></button>
+                <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"> <b>{{mapa.aviso}}</b></span> 
+            </div>
+
+            <div  id="resultado"></div>
+
+            <div class="row">
+
+                <div class="col-xs-12 col-sm-6 col-lg-6">
+                    <canvas id="mapa" height="300">
+                        Infelizmente seu navegador não suporta o elemento canvas :(
+                    </canvas>
+                </div><!-- Fim - Área do mapa -->
+
+                <div class="col-xs-12 col-sm-6 col-lg-6">
+                    <div class="row">
+
+                        <div class="col-xs-12" ng-show="mapa.pesquisaPermitida()">                   
+                            <form class="form-horizontal" method="post">
+                                <button type="submit" class="btn btn-lg btn-block btn-success" ng-disabled="mapa.pesquisaInvalida()" ng-click="mapa.calcular()">Pesquisar melhor caminho</button>
+                                <br>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-6">
+                                        <label>Vértice inicial:</label>
+                                        <select ng-model="mapa.inicio" class="form-control" ng-options="vertices.nome for vertices in mapa.lista_vertices"></select>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6">
+                                        <label>Vértice final:</label>
+                                        <select ng-model="mapa.fim" class="form-control" ng-options="vertices.nome for vertices in mapa.lista_vertices"></select>
+                                    </div>
+                                </div>
+                            </form>
+                            <hr>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-6">                   
+                            <form class="form-horizontal" method="post" ng-controller="VerticeCtrl as vertice">
+                                <button type="submit" class="btn btn-lg btn-block btn-success" ng-disabled="vertice.invalido()" ng-click="vertice.addVertice()">Cadastrar Vértice</button>
+                                <br>
+                                <label for="vertice_cor">Cor:</label>
+                                <input type="color" ng-model="vertice.formulario.cor" class="form-control" id="vertice_cor">
+
+                                <label for="vertice_nome">Nome:</label>
+                                <input type="text" ng-model="vertice.formulario.nome" class="form-control" id="vertice_nome">
+
+                                <label for="vertice_eixoX">Localização no X:</label>
+                                <input type="number" min="0" max="100" ng-model="vertice.formulario.eixoX" class="form-control" id="vertice_eixoX">
+
+                                <label for="vertice_eixoY">Localização no Y:</label>
+                                <input type="number" min="0" max="100" ng-model="vertice.formulario.eixoY" class="form-control" id="vertice_eixoY">
+                            </form>
+                            <hr>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-6">
+                            <form class="form-horizontal" method="post" ng-controller="ArestaCtrl as aresta">
+                                <button type="submit" class="btn btn-lg btn-block btn-success" ng-disabled="aresta.invalida()" ng-click="aresta.addAresta()">Cadastrar Aresta</button>                      
+                                <br>
+                                <label for="aresta_cor">Cor:</label>
+                                <input type="color" class="form-control" ng-model="aresta.formulario.cor" id="aresta_cor">
+
+                                <label for="aresta_distancia">Distância entre vértices:</label>
+                                <input type="number" min="1" class="form-control" ng-model="aresta.formulario.distancia" id="aresta_distancia">
+
+                                <label>Vértice inicial:</label>
+                                <select ng-model="aresta.formulario.verticeInicio" class="form-control" ng-options="vertices.nome for vertices in mapa.lista_vertices"></select>                                
+
+                                <label>Vértice final:</label>
+                                <select ng-model="aresta.formulario.verticeFim" class="form-control" ng-options="vertices.nome for vertices in mapa.lista_vertices"></select>
+                            </form>
+                            <hr>
+                        </div>
+
+                    </div><!-- Fim - Linha dos formulários -->
+
+                    <div class="row">
+
+                        <div class="col-xs-12 col-sm-6">
+                            <h4 class="text-center"><i><b>Vértices</b></i></h4>
+                            <hr>
+                            <ul class="list-group">
+                                <li ng-repeat="vertice in mapa.lista_vertices" class="list-group-item">
+                                    <div class="row text-left">
+                                        
+                                        <div class="col-xs-2">
+                                            <div id="icone-vertice" style="background-color: {{vertice.cor}}"></div>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            {{vertice.nome}}
+                                        </div>
+                                        <div class="col-xs-4">
+                                            ({{vertice.eixoX}},{{vertice.eixoY}})
+                                        </div>
+                                        
+                                    </div>                                        
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">                   
+                            <h4 class="text-center"><i><b>Arestas</b></i></h4>
+                            <hr>
+                            <ul class="list-group">
+                                <li ng-repeat="aresta in mapa.lista_arestas" class="list-group-item">
+                                    <div class="row">
+                                        
+                                        <div class="col-xs-2 text-left">
+                                            <div id="icone-aresta" style="background-color: {{aresta.cor}}"></div>
+                                        </div>
+                                        <div class="col-xs-10 text-center">
+                                            <b class="text-left">{{aresta.verticeInicio.nome}}</b> <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> <b class="text-right">{{aresta.verticeFim.nome}}</b>
+                                            <br>
+                                            <br>
+                                            <span class="badge">{{aresta.distancia}} metros</span>
+                                        </div>
+                                        
+                                    </div>                                        
+                                </li>
+                            </ul>                            
+                        </div>
+
+                    </div><!-- Fim - Linha das listagens -->
+
+                </div><!-- Fim - Coluna lateral -->
+
+            </div><!-- Fim - Linha -->
+
+        </div><!-- Fim - Container de alinhamento -->        
+    </body>
+</html>
