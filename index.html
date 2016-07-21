@@ -36,20 +36,92 @@
 
             <div class="alert alert-warning alert-dismissible" role="alert" ng-show="mapa.aviso">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="mapa.desativarAviso()"><span aria-hidden="true">&times;</span></button>
-                <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"> <b>{{mapa.aviso}}</b></span> 
+                <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"> <b id="aviso"></b></span> 
             </div>
 
-            <div  id="resultado"></div>
+            <div id="resultado" ng-show="mapa.resultado"></div>
 
             <div class="row">
 
-                <div class="col-xs-12 col-sm-6 col-lg-6">
+                <div class="col-xs-12 col-sm-6">
                     <canvas id="mapa" height="300">
                         Infelizmente seu navegador não suporta o elemento canvas :(
                     </canvas>
+                    
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-vertice" style="background-color: #8B4513"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Vértice não visitado
+                                        </div>
+                                    </div>                            
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-vertice" style="background-color: #0000FF"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Vértice visitado
+                                        </div>
+                                    </div>                            
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-vertice" style="background-color: #00FF00"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Vértice no trajeto
+                                        </div>
+                                    </div>                            
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-xs-12 col-sm-6">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-aresta" style="background-color: #DA70D6"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Aresta não visitada
+                                        </div>
+                                    </div>                            
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-aresta" style="background-color: #DAA520"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Aresta visitada
+                                        </div>
+                                    </div>                            
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="row text-left">
+                                        <div class="col-xs-2">
+                                            <div id="icone-aresta" style="background-color: #FF0000"></div>
+                                        </div>
+                                        <div class="col-xs-10">
+                                            Aresta no trajeto
+                                        </div>
+                                    </div>                            
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                 </div><!-- Fim - Área do mapa -->
 
-                <div class="col-xs-12 col-sm-6 col-lg-6">
+                <div class="col-xs-12 col-sm-6">
                     <div class="row">
 
                         <div class="col-xs-12" ng-show="mapa.pesquisaPermitida()">                   
@@ -74,9 +146,6 @@
                             <form class="form-horizontal" method="post" ng-controller="VerticeCtrl as vertice">
                                 <button type="submit" class="btn btn-lg btn-block btn-success" ng-disabled="vertice.invalido()" ng-click="vertice.addVertice()">Cadastrar Vértice</button>
                                 <br>
-                                <label for="vertice_cor">Cor:</label>
-                                <input type="color" ng-model="vertice.formulario.cor" class="form-control" id="vertice_cor">
-
                                 <label for="vertice_nome">Nome:</label>
                                 <input type="text" ng-model="vertice.formulario.nome" class="form-control" id="vertice_nome">
 
@@ -93,11 +162,8 @@
                             <form class="form-horizontal" method="post" ng-controller="ArestaCtrl as aresta">
                                 <button type="submit" class="btn btn-lg btn-block btn-success" ng-disabled="aresta.invalida()" ng-click="aresta.addAresta()">Cadastrar Aresta</button>                      
                                 <br>
-                                <label for="aresta_cor">Cor:</label>
-                                <input type="color" class="form-control" ng-model="aresta.formulario.cor" id="aresta_cor">
-
                                 <label for="aresta_distancia">Distância entre vértices:</label>
-                                <input type="number" min="1" class="form-control" ng-model="aresta.formulario.distancia" id="aresta_distancia">
+                                <input type="number" min="0" class="form-control" ng-model="aresta.formulario.distancia" id="aresta_distancia">
 
                                 <label>Vértice inicial:</label>
                                 <select ng-model="aresta.formulario.verticeInicio" class="form-control" ng-options="vertices.nome for vertices in mapa.lista_vertices"></select>                                
@@ -118,18 +184,24 @@
                             <ul class="list-group">
                                 <li ng-repeat="vertice in mapa.lista_vertices" class="list-group-item">
                                     <div class="row text-left">
-                                        
+
                                         <div class="col-xs-2">
                                             <div id="icone-vertice" style="background-color: {{vertice.cor}}"></div>
                                         </div>
-                                        <div class="col-xs-6">
+                                        <div class="col-xs-5">
                                             {{vertice.nome}}
+                                            <br>
+                                            <br>
+                                            <span class="badge">Custo: {{vertice.custo}}</span>
                                         </div>
-                                        <div class="col-xs-4">
+                                        <div class="col-xs-5">
                                             ({{vertice.eixoX}},{{vertice.eixoY}})
+                                            <br>
+                                            <br>
+                                            <span class="badge">Anterior: {{vertice.verticeAnterior.nome}}</span>
                                         </div>
-                                        
-                                    </div>                                        
+
+                                    </div>                                    
                                 </li>
                             </ul>
                         </div>
@@ -139,7 +211,7 @@
                             <ul class="list-group">
                                 <li ng-repeat="aresta in mapa.lista_arestas" class="list-group-item">
                                     <div class="row">
-                                        
+
                                         <div class="col-xs-2 text-left">
                                             <div id="icone-aresta" style="background-color: {{aresta.cor}}"></div>
                                         </div>
@@ -149,7 +221,7 @@
                                             <br>
                                             <span class="badge">{{aresta.distancia}} metros</span>
                                         </div>
-                                        
+
                                     </div>                                        
                                 </li>
                             </ul>                            
