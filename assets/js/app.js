@@ -1,21 +1,34 @@
 (function () {
     /* Eventos disparados */
     $(window).load(desenharMapa);
-    $(window).resize(ajustarCanvas);
 
     /* Variáveis globais */
     var app = angular.module('Dijkstra', []);
+    
     var vertices = new Array();
     var arestas = new Array();
     var verticeInicial;
     var verticeFinal;
-    var canvasId = "mapa";
-    var canvasLargura;
-    var canvasAltura;
-
+    
+    var canvasId = 'mapa';
+    var porcentagemLargura;
+    var porcentagemAltura;    
+    
+    var fonte = '16px Arial bold';
+    var raioVertice = 5;
+    var larguraAresta = 2;
+    var corTexto = '#696969';
+    var corContorno = '#C0C0C0';
+    var corVerticeNormal = '#8B4513';
+    var corVerticeVisitado = '#0000FF';
+    var corVerticeCerto = '#00FF00';
+    var corArestaNormal = '#DA70D6';
+    var corArestaVisitada = '#DAA520';
+    var corArestaCerta = '#FF0000';
+    
     /* Definição dos objetos e funções do algoritmo */
     function Vertice() {
-        this.cor = '#000080';
+        this.cor = corVerticeNormal;
         this.nome;
         this.eixoX = 0;
         this.eixoY = 0;
@@ -25,65 +38,179 @@
     }
 
     function Aresta() {
-        this.cor = '#FF0000';
+        this.cor = corArestaNormal;
         this.verticeInicio;
         this.verticeFim;
         this.distancia = 1;
     }
 
-    function efetuarPesagem(vertice) {
-        vertice.checagem = true;
+    // Funções de teste
+    function testePadrao() {
+        var vertice = new Vertice();
+        vertice.nome = 'A';
+        vertice.eixoX = 10;
+        vertice.eixoY = 10;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'B';
+        vertice.eixoX = 25;
+        vertice.eixoY = 10;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'C';
+        vertice.eixoX = 40;
+        vertice.eixoY = 10;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'D';
+        vertice.eixoX = 55;
+        vertice.eixoY = 10;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'E';
+        vertice.eixoX = 25;
+        vertice.eixoY = 25;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'F';
+        vertice.eixoX = 10;
+        vertice.eixoY = 55;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'G';
+        vertice.eixoX = 70;
+        vertice.eixoY = 10;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'Y';
+        vertice.eixoX = 0;
+        vertice.eixoY = 0;
+        vertices.push(vertice);
+        var vertice = new Vertice();
+        vertice.nome = 'Z';
+        vertice.eixoX = 100;
+        vertice.eixoY = 100;
+        vertices.push(vertice);
+        var aresta = new Aresta();
+        aresta.distancia = 10;
+        aresta.verticeInicio = vertices[0];
+        aresta.verticeFim = vertices[1];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 6;
+        aresta.verticeInicio = vertices[1];
+        aresta.verticeFim = vertices[2];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 2;
+        aresta.verticeInicio = vertices[2];
+        aresta.verticeFim = vertices[3];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 3;
+        aresta.verticeInicio = vertices[6];
+        aresta.verticeFim = vertices[3];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 12;
+        aresta.verticeInicio = vertices[0];
+        aresta.verticeFim = vertices[4];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 14;
+        aresta.verticeInicio = vertices[0];
+        aresta.verticeFim = vertices[5];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 1;
+        aresta.verticeInicio = vertices[4];
+        aresta.verticeFim = vertices[5];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 1;
+        aresta.verticeInicio = vertices[5];
+        aresta.verticeFim = vertices[2];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 3.5;
+        aresta.verticeInicio = vertices[5];
+        aresta.verticeFim = vertices[3];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 5.5;
+        aresta.verticeInicio = vertices[0];
+        aresta.verticeFim = vertices[7];
+        arestas.push(aresta);
+        var aresta = new Aresta();
+        aresta.distancia = 5.5;
+        aresta.verticeInicio = vertices[5];
+        aresta.verticeFim = vertices[8];
+        arestas.push(aresta);
+    }
 
-        var vizinhos = [];
-        var contador = 0;
-        var menor = null;
-        var posicao;
+    function efetuarPesagem(raiz) {
+        var fila = [];
+        fila.push(raiz);
+        fila[0].custo = 0;
+        
+        do {
+            // Desenha o vértice
+            fila[0].cor = corVerticeVisitado;
+            
+            var vizinhos = [];
+            for (var i = 0; i < arestas.length; i++) {
 
-        for (var i = 0; i < arestas.length; i++) {
-            if ((arestas[i].verticeInicio === vertice)) {
-                // Reajusta custo dos vizinhos
-                if (arestas[i].verticeFim.custo === undefined || ((arestas[i].distancia + vertice.custo) < arestas[i].verticeFim.custo)) {
-                    arestas[i].verticeFim.custo = (arestas[i].distancia + vertice.custo);
-                    arestas[i].verticeFim.verticeAnterior = vertice;
-                }
-
-                if (arestas[i].verticeFim.checagem === false) {
-                    // Calcula se é o menor caminho a ser seguido
-                    if ((menor === null) || (arestas[i].verticeFim.custo < menor)) {
-                        menor = arestas[i].verticeFim.custo;
-                        posicao = contador;
+                if ((arestas[i].verticeInicio === fila[0])) {
+                    // Risca a aresta                  
+                    arestas[i].cor = corArestaVisitada;
+                    
+                    // Reajuste de custo / Relaxamento dos vértices
+                    if (arestas[i].verticeFim.custo === undefined || ((arestas[i].distancia + fila[0].custo) < arestas[i].verticeFim.custo)) {
+                        arestas[i].verticeFim.custo = (arestas[i].distancia + fila[0].custo);
+                        arestas[i].verticeFim.verticeAnterior = fila[0];
                     }
-                    // Adiciona o vizinho na lista
-                    vizinhos.push(arestas[i].verticeFim);
-                    contador++;
+
+                    // Verifica os que não foram checados e os marca
+                    if (arestas[i].verticeFim.checagem === false) {
+                        arestas[i].verticeFim.checagem = true;
+                                                
+                        vizinhos.push(arestas[i].verticeFim);
+                    }
                 }
             }
-        }
 
-        // Se tiver vizinho ele vai para o de menor custo
-        if (vizinhos.length > 0) {
-            efetuarPesagem(vizinhos[posicao]);
-        } else if (vertice !== verticeInicial) { // Se voltou para a raiz então a pesagem acabou
-            efetuarPesagem(vertice.verticeAnterior);
-        }
+            // Ordena os vizinhos em ordem crescente baseado em seu custo
+            vizinhos.sort(function (a, b) {
+                return a.custo - b.custo;
+            });
+            for (var i = 0; i < vizinhos.length; i++) {
+                fila.push(vizinhos[i]);
+            }
+
+            // Retira o primeiro nó da fila
+            fila.shift();
+        } while (fila.length > 0);
     }
 
     function mostrarTrajeto() {
         var texto, caminho = '';
         var tragetoria = [];
         var vertice = verticeFinal;
-
-        tragetoria.push(vertice);
         do {
-            vertice = vertice.verticeAnterior;
+            vertice.cor = corVerticeCerto;
+            
+            arestas.forEach(function(elemento){
+                if((elemento.verticeFim === vertice) && (elemento.verticeInicio === vertice.verticeAnterior) && (vertice.verticeAnterior !== undefined)){
+                    elemento.cor = corArestaCerta;
+                }
+            });
+            
             tragetoria.push(vertice);
-        } while (vertice !== verticeInicial);
-
+            vertice = vertice.verticeAnterior;
+        } while (vertice !== undefined);
         tragetoria.reverse();
-
         texto = 'Partindo de <b>' + verticeInicial.nome + '</b>, o menor caminho para chegar em <b>' + verticeFinal.nome + '</b> tem um total de <b>' + verticeFinal.custo + ' metros</b>. ';
         texto = texto + 'A menor tragetória possível é:<br><br>';
-
         for (var i = 0; i < tragetoria.length; i++) {
             if (tragetoria[i] !== verticeFinal) {
                 caminho = caminho + '<i>' + tragetoria[i].nome + '</i> <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span> ';
@@ -92,7 +219,6 @@
         caminho = caminho + '<i>' + verticeFinal.nome + '</i>';
         caminho = '<b>' + caminho + '</b>';
         texto = '<div class="jumbotron">' + texto + caminho + '</div>';
-
         var resultado = $("#resultado");
         resultado.html(texto);
     }
@@ -110,21 +236,10 @@
     /* Funções gráficas */
     function ajustarCanvas() {
         var canvas = document.getElementById(canvasId);
-        canvasLargura = (($(canvas).width() / 100).toFixed(2) / 2).toFixed();
-        canvasAltura = (($(canvas).height() / 100).toFixed(2) / 2).toFixed();
-    }
-
-    function desenharMapa() {
-        ajustarCanvas();
-        resetarMapa();
-
-        var cor = '#c0c0c0';
-
-        for (var i = 0; i <= 100; i += 10) {
-            desenharAresta(0, i, 100, i, cor);
-            desenharAresta(i, 0, i, 100, cor);
-        }
-        // criar algum efeito daorinha
+        var largura = $(canvas).width();
+        var altura = $(canvas).height();
+        porcentagemLargura = ((largura / 100) /2).toFixed();
+        porcentagemAltura = ((altura / 100) /2).toFixed();
     }
 
     function resetarMapa() {
@@ -133,16 +248,46 @@
         caneta.clearRect(0, 0, $(canvas).width(), $(canvas).height());
     }
 
+    function desenharMapa() {
+        ajustarCanvas();
+        resetarMapa();
+        
+        var cor = corContorno;        
+        for (var i = 0; i <= 100; i += 10) {
+            desenharAresta(0, i, 100, i, cor);
+            desenharAresta(i, 0, i, 100, cor);
+        }
+        
+        escreverTexto('X' , (porcentagemLargura*50)-6, 16);
+        escreverTexto('Y' , 8, (porcentagemAltura*50)+6);
+        escreverTexto('(0,0)' , 0, 16);
+        escreverTexto('(100,100)' , (porcentagemLargura*100)-64, (porcentagemAltura*100)-6);
+        
+        arestas.forEach(function(elemento){           
+            desenharAresta(elemento.verticeInicio.eixoX, elemento.verticeInicio.eixoY, elemento.verticeFim.eixoX, elemento.verticeFim.eixoY, elemento.cor);
+        });
+        vertices.forEach(function(elemento){
+            desenharVertice(elemento.eixoX, elemento.eixoY, elemento.cor);
+        });
+    }
+
+    function escreverTexto(texto, x, y){
+        var canvas = document.getElementById(canvasId);
+        var caneta = canvas.getContext("2d");
+        
+        caneta.fillStyle = corTexto;
+        caneta.font = fonte;
+        caneta.fillText(texto, x, y);
+    }
+    
     function desenharVertice(x, y, cor) {
         var canvas = document.getElementById(canvasId);
         var caneta = canvas.getContext("2d");
-
-        x = canvasLargura * x;
-        y = canvasAltura * y;
-
+        x = (porcentagemLargura * x);
+        y = (porcentagemAltura * y);
         caneta.fillStyle = cor;
         caneta.beginPath();
-        caneta.arc(x, y, 4, 0, Math.PI * 2, false);
+        caneta.arc(x, y, raioVertice, 0, Math.PI * 2, false);
         caneta.fill();
     }
 
@@ -150,33 +295,31 @@
         var canvas = document.getElementById(canvasId);
         var caneta = canvas.getContext("2d");
         caneta.strokeStyle = cor;
-        caneta.lineWidth = 1;
-
-        xInicio = canvasLargura * xInicio;
-        yInicio = canvasAltura * yInicio;
-        xFim = canvasLargura * xFim;
-        yFim = canvasAltura * yFim;
-
+        caneta.lineWidth = larguraAresta;
+        xInicio = (porcentagemLargura * xInicio);
+        yInicio = (porcentagemAltura * yInicio);
+        xFim = (porcentagemLargura * xFim);
+        yFim = (porcentagemAltura * yFim);
         caneta.beginPath();
         caneta.moveTo(xInicio, yInicio);
         caneta.lineTo(xFim, yFim);
-        caneta.closePath();
         caneta.stroke();
     }
 
     app.controller('mapaCtrl', function () {
         this.lista_vertices = vertices;
         this.lista_arestas = arestas;
-
         this.inicio;
         this.fim;
         this.aviso = false;
         this.resultado = false;
-
+        
+        testePadrao();
+        desenharMapa();
+        
         this.desativarAviso = function () {
             this.aviso = false;
         };
-
         this.pesquisaPermitida = function () {
             var permitida = true;
             if (vertices.length < 2 || arestas.length < 1) {
@@ -185,7 +328,6 @@
 
             return permitida;
         };
-
         this.pesquisaInvalida = function () {
             var invalidade = false;
             if (this.inicio === this.fim) {
@@ -196,43 +338,34 @@
 
             return invalidade;
         };
-
         this.calcular = function () {
             resetarTrajeto();
-
             this.resultado = false;
-            this.aviso = "Calculando...";
-
+            this.aviso = true;
+            $("#aviso").text("Calculando...");
             verticeInicial = this.inicio;
-            verticeInicial.custo = 0;
             verticeFinal = this.fim;
-
             efetuarPesagem(verticeInicial);
-
             if (verticeFinal.verticeAnterior === undefined) {
-                this.aviso = "Impossível calcular uma rota entre estes vértices!";
+                desenharMapa();
+                $("#aviso").text("Impossível calcular uma rota entre estes vértices!");
+                this.aviso = true;
                 this.resultado = false;
-
             } else {
                 mostrarTrajeto();
-
+                desenharMapa();
                 this.aviso = false;
                 this.resultado = true;
             }
         };
     });
-
     app.controller('VerticeCtrl', function () {
         this.formulario = new Vertice();
-
         this.addVertice = function () {
             vertices.push(this.formulario);
-
-            desenharVertice(this.formulario.eixoX, this.formulario.eixoY, this.formulario.cor);
-
+            desenharMapa();            
             this.formulario = new Vertice();
         };
-
         this.invalido = function () {
             var invalidade = false;
             for (var i = 0; i < vertices.length; i++) {
@@ -248,21 +381,15 @@
             return invalidade;
         };
     });
-
     app.controller('ArestaCtrl', function () {
         this.formulario = new Aresta();
-
         this.addAresta = function () {
             arestas.push(this.formulario);
-
-            desenharAresta(this.formulario.verticeInicio.eixoX, this.formulario.verticeInicio.eixoY, this.formulario.verticeFim.eixoX, this.formulario.verticeFim.eixoY, this.formulario.cor);
-
+            desenharMapa();
             this.formulario = new Aresta();
         };
-
         this.invalida = function () {
             var invalidade = false;
-
             for (var i = 0; i < arestas.length; i++) {
                 if ((arestas[i].verticeInicio === this.formulario.verticeInicio) && (arestas[i].verticeFim === this.formulario.verticeFim)) {
                     invalidade = true;
@@ -280,5 +407,4 @@
             return invalidade;
         };
     });
-
 })();
