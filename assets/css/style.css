@@ -4,20 +4,21 @@ body{
 }
 
 #mapa{
-    background-image: url("../img/mapa.jpg");
-    opacity: 0.9;
+    /* background-image: url("../img/mapa.jpg"); */    
     width: 100%;
     padding: 0px;
     margin: 0px;
+    border-radius: 10px;
 }
 
 #icone-vertice{
-    width: 25px;
-    height: 25px;
-    border-radius: 25px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
 }
 
 #icone-aresta{
-    width: 25px;
-    height: 70px;
+    border-radius: 5px;
+    width: 12px;
+    height: 36px;
 }
